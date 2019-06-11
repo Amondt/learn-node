@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Todo list in real time</title>
+        <style>
+            * {
+                font-family: 'sans-serif';
+                color: #444
+            }
+            p {
+                margin: 25px 0px;
+            }
+            .del-todo {
+                font-size: 1.5rem;
+            }
+            .todo-owner {
+                background: #444;
+                color: #EEE;
+                padding: 10px;
+                border-radius: 3px;
+            }
+            .del-todo:hover {
+                cursor: pointer;
+            }
+            input {
+                padding: 9px;
+                border-radius: 3px;
+                box-shadow: none;
+                border: 1px solid #444;
+            }
+            button {
+                padding: 10px;
+                border-radius: 3px;
+                box-shadow: none;
+                border: none;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Welcome to this todo list !</h1>
+
+        <!-- Loop all todos from server todos list at first load  -->
+        <div id="todo-list">
+            <% todos.forEach(todo => { %>
+                <p id="todo<%= todo.id %>">
+                    <span class='todo-owner'><%= todo.user %></span>
+                    <span> <%= todo.content %></span>
+                </p>
+            <% }) %>
+        </div>
+
+        <form id="todo-form">
+            <input type="text" name="todoInput" placeholder="new todo" />
+            <button type="submit">Add</button>
+        </form>
+
+
+        <script src='/socket.io/socket.io.js'></script>
+        <script>
+            var socket = io.connect('localhost:8080')
+
+            var user = ''
+
+            // create user prop on socket instance when connect
+            socket.on('connectReq', () => {
+                while (user === '') {
+                    user = prompt('User name: ')
+                }
+                socket.emit('connectReq', user)
+                document.title = user + ' - ' + document.title
+
+                // Add delete interraction on the elements if they math the current user
+                var todos = Array.from(document.querySelector('#todo-list').children)
+                console.log(todos)
+                todos.forEach(todo => {
+                    console.log(todo.firstElementChild)
+                    if (user === todo.firstElementChild.innerHTML) {
+                        console.log('to add cross')
+                        var node = document.createElement('span')
+                        node.innerHTML = "&#10007;"
+                        node.className = "del-todo"
+                        todo.insertAdjacentElement('afterbegin', node)
+                        node.addEventListener('click', () => {
+                            socket.emit('delTodo', node.parentElement.id)
+                            node.parentElement.parentElement.removeChild(node.parentElement)
+                            console.log(node.parentElement.id)
+                            console.log('todo deleted')
+                        })
+                    }
+                })
+            })
+
+            // Event submit new todo
+            // Emit to server > add to current client
+            document.querySelector('#todo-form').addEventListener('submit', (e) => {
+                e.preventDefault()
+                var id = Math.random() * 10000 | 0
+                socket.emit('addTodo', user, e.target.todoInput.value, id)
+                addTodo(user, e.target.todoInput.value, id)
+                document.querySelectorAll('.del-todo').forEach(todo => {
+                    todo.addEventListener('click', () => {
+                        socket.emit('delTodo', todo.parentElement.id)
+                        todo.parentElement.parentElement.removeChild(todo.parentElement)
+                        console.log(todo.parentElement.id)
+                        console.log('todo deleted')
+                    })
+                })
+                e.target.todoInput.value = ''
+            })
+
+            // Receive new todo from server
+            socket.on('addTodo', (user, content, id) => {
+                addTodo(user, content, id)
+                document.querySelectorAll('.del-todo').forEach(todo => {
+                    todo.addEventListener('click', () => {
+                        socket.emit('delTodo', todo.parentElement.id)
+                        todo.parentElement.parentElement.removeChild(todo.parentElement)
+                        console.log(todo.parentElement.id)
+                        console.log('todo deleted')
+                    })
+                })
+            })
+
+            // Event remove todo
+            // Emit to server > remove from current client
+            document.querySelectorAll('.del-todo').forEach(todo => {
+                todo.addEventListener('click', () => {
+                    socket.emit('delTodo', todo.parentElement.id)
+                    todo.parentElement.parentElement.removeChild(todo.parentElement)
+                    console.log(todo.parentElement.id)
+                    console.log('todo deleted')
+                })
+            })
+
+            // Receive todo to delete from server
+            socket.on('delTodo', id => {
+                console.log('req from server: todo to delete with id: ', id)
+                console.log(document.querySelector(`#todo${id}`))
+                var todoEl = document.querySelector(`#${id}`)
+                todoEl.parentElement.removeChild(todoEl)
+            })
+
+            // function to write new todo on the DOM
+            addTodo = (owner, content, id) => {
+                if (owner !== '') {
+                    var node = document.createElement('p')
+                    node.id = 'todo' + id
+                    if (owner === user) {
+                        var newTodo = "<span class='del-todo'>&#10007;</span> <span class='todo-owner'>" + owner + "</span><span> " + content + "</span>"
+                    } else {
+                        var newTodo = "<span class='todo-owner'>" + owner + "</span><span> " + content + "</span>"
+                    }
+                    node.innerHTML = newTodo
+                    document.querySelector('#todo-list').appendChild(node)
+                    console.log(node)
+                }
+            }
+
+        window</script>
+    </body>
+</html>

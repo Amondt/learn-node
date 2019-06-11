@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Socket.io</title>
+    </head>
+    <body>
+        <h1>Hello World !</h1>
+
+        <button id="poke">Greets server</button>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io.connect('http://localhost:8080')
+
+            var pseudo = prompt('What is your pseudo ?')
+            socket.emit('newPlayer', pseudo)
+            
+            document.querySelector('#poke').addEventListener('click', () => {
+                socket.emit('message', 'Hi server, I\'m the client !')
+            })
+
+            socket.on('message', message => {
+                console.log(message)
+            })
+
+        console.log('')</script>
+    </body>
+</html>

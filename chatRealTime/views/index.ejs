@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>Real Time Chat</title>
+        <style>
+            * {
+                font-family: 'sans-serif'
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Welcome to this super chat in real time !</h1>
+
+        <form id="msgForm">
+            <input type="text" name="msgInput" placeholder="Enter your message" />
+            <button type="submit">Send</button>
+        </form>
+
+        <section id="messageArea">
+        </section>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var socket = io.connect('http://localhost:8080')
+            var user = prompt('Pseudo:')
+            socket.emit('newUser', user)
+            document.title = user + ' - ' + document.title
+
+            socket.on('newUser', user => {
+                newUserWarn(user)
+            })
+            
+            socket.on('newMsg', (user, message) => {
+                postMessage(user, message)
+            })
+
+            document.querySelector('#msgForm').addEventListener('submit', (e) => {
+                e.preventDefault()
+                console.log('Form submited')
+                if (user !== '') {
+                    postMessage(user, e.target.msgInput.value)
+                    socket.emit('newMsg', user, e.target.msgInput.value)
+                }
+                e.target.msgInput.value = ''
+            })
+
+            postMessage = (user, message) => {
+                if (user !== '') {
+                    var node = document.createElement('p')
+                    var newMsg = '<b>' + user + '</b>: ' + message
+                    node.innerHTML = newMsg
+                    if (node.innerHTML !== '<b>[object Object]</b>: http://localhost:8080/') {
+                        document.querySelector('#messageArea').appendChild(node)
+                    }
+                }
+            }
+
+            newUserWarn = (pseudo) => {
+                var node = document.createElement('p')
+                var newMsg = document.createTextNode(pseudo + " has joined the chat")
+                node.appendChild(newMsg)
+                document.querySelector('#messageArea').appendChild(node)
+            }
+
+
+        window</script>
+    </body>
+</html>

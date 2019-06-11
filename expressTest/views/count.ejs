@@ -1,0 +1,12 @@
+<h1>I'm gonna count till <%= number %></h1>
+
+<p>
+    <% for(var i=1; i<=number; i++) { %>
+        <%= i %>...
+    <% } %>
+</p>
+
+<p>
+    Just a random name taken form the list:
+    <%= names[Math.round(Math.random() * (names.length - 1))] %>
+</p>

@@ -1,5 +1,5 @@
 {
-    "name": "Real time todo list",
+    "name": "real_time_todo_list",
     "author": "A. Mondt <mondt.alexandre@gmail.com>",
     "version": "0.1.0",
     "dependencies": {
